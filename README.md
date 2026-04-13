@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CodeScan - AI Code Reviewer
 
-## Getting Started
+An AI-powered code review tool built with Next.js and Claude. Paste any code snippet and get instant feedback on bugs, security vulnerabilities, performance issues, and style improvements.
 
-First, run the development server:
+![CodeScan Screenshot](screenshot-placeholder.png)
+
+## Features
+
+- **AI-Powered Reviews** - Uses Claude (Anthropic) to analyze code for bugs, security issues, performance problems, and style
+- **Monaco Editor** - Full-featured code editor with syntax highlighting for 17+ languages
+- **Severity Scoring** - Overall quality score (0-100) with issue-by-issue breakdown
+- **GitHub Integration** - Sign in with GitHub to load files directly from your repositories
+- **Streaming Results** - Review results stream in progressively
+- **Persistent Results** - Last review saved to localStorage
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Monaco Editor
+- Anthropic Claude API
+- NextAuth.js v5 (GitHub OAuth)
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+cd codescan
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.local.example .env.local
+```
+
+### 3. Get an Anthropic API Key
+
+1. Go to [console.anthropic.com](https://console.anthropic.com/)
+2. Sign up or log in
+3. Navigate to **API Keys** in the settings
+4. Click **Create Key**
+5. Copy the key and paste it as `ANTHROPIC_API_KEY` in `.env.local`
+
+### 4. Set up GitHub OAuth (optional, for GitHub integration)
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Click **New OAuth App**
+3. Set the **Authorization callback URL** to `http://localhost:3000/api/auth/callback/github`
+4. Copy the **Client ID** and **Client Secret** into `.env.local`
+5. Generate a `NEXTAUTH_SECRET` with: `openssl rand -base64 32`
+
+### 5. Run the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to use CodeScan.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Paste code into the editor (a sample with bugs is pre-loaded)
+2. Select the language from the dropdown
+3. Click **Review Code**
+4. View the score, summary, and detailed issues in the right panel
+5. Click **Copy fix** on any issue to copy the suggested fix
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
