@@ -1,18 +1,25 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
+const providers = [];
+
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  providers.push(
     GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
       authorization: {
         params: {
           scope: "read:user repo",
         },
       },
-    }),
-  ],
+    })
+  );
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers,
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
