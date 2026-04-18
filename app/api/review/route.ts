@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = buildReviewPrompt(language || "javascript");
 
-    const stream = anthropic.messages.stream({
-      model: "claude-sonnet-4-20250514",
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-6",
       max_tokens: 4096,
       system: systemPrompt,
       messages: [
@@ -37,51 +37,26 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const encoder = new TextEncoder();
+    const text =
+      message.content[0].type === "text" ? message.content[0].text : "";
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          stream.on("text", (text) => {
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
-            );
-          });
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      console.error("Claude returned non-JSON:", text);
+      return NextResponse.json(
+        { error: "AI returned an unexpected format. Please try again." },
+        { status: 500 }
+      );
+    }
 
-          const finalMessage = await stream.finalMessage();
-          const fullText =
-            finalMessage.content[0].type === "text"
-              ? finalMessage.content[0].text
-              : "";
-
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ done: true, fullText })}\n\n`
-            )
-          );
-          controller.close();
-        } catch (err) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ error: "Stream failed" })}\n\n`
-            )
-          );
-          controller.close();
-        }
-      },
-    });
-
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
+    return NextResponse.json(parsed);
   } catch (error) {
     console.error("Review API error:", error);
+    const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to process review request." },
+      { error: `Review failed: ${msg}` },
       { status: 500 }
     );
   }

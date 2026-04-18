@@ -46,6 +46,11 @@ export default function IssueCard({ issue, index }: IssueCardProps) {
     <div
       className={`rounded-lg border border-gray-200 border-l-4 ${severity.border} bg-white p-4 transition-all hover:shadow-md`}
     >
+      {issue.file && (
+        <div className="text-xs text-gray-500 font-mono truncate mb-1.5">
+          {issue.file}
+        </div>
+      )}
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${severity.badge}`}
