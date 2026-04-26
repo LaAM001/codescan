@@ -86,7 +86,7 @@ export default function ReviewPanel({
   }
 
   return (
-    <div className="p-6 space-y-4 overflow-y-auto h-full">
+    <div className="p-6 space-y-4">
       <ScoreCard result={result} />
 
       <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
