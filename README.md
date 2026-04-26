@@ -2,6 +2,8 @@
 
 An AI-powered GitHub repository review tool built with Next.js and Claude. Enter any public GitHub repository URL and get a comprehensive code review covering bugs, security vulnerabilities, performance issues, and style problems across your entire codebase.
 
+![CodeScan Screenshot](public/Screenshot_2.png)
+
 ## Features
 
 - **Full Repository Scanning** - Fetches and reviews up to 50 code files (200 KB total) from any public GitHub repo
