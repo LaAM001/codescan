@@ -1,9 +1,7 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { sendMessage } from "@/lib/claude-web";
 import { buildRepoReviewPrompt } from "@/lib/prompt";
 import { fetchFileContents } from "@/lib/github";
 import { NextRequest, NextResponse } from "next/server";
-
-const anthropic = new Anthropic();
 
 const MAX_FILES = 50;
 const MAX_TOTAL_SIZE = 200_000;
@@ -51,20 +49,10 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = buildRepoReviewPrompt();
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      system: systemPrompt,
-      messages: [
-        {
-          role: "user",
-          content: `Review this repository (${owner}/${repo}):\n\n${combinedCode}`,
-        },
-      ],
-    });
-
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const text = await sendMessage(
+      systemPrompt,
+      `Review this repository (${owner}/${repo}):\n\n${combinedCode}`
+    );
 
     let parsed;
     try {

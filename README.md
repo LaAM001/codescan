@@ -8,7 +8,7 @@ An AI-powered GitHub repository review tool built with Next.js and Claude. Enter
 
 - **Full Repository Scanning** - Fetches and reviews up to 50 code files (200 KB total) from any public GitHub repo
 - **File Selection** - Toggle select mode to choose specific files before scanning
-- **AI-Powered Analysis** - Uses Claude (Anthropic) to identify bugs, security issues, performance problems, and style improvements
+- **AI-Powered Analysis** - Uses your Claude.ai subscription session to identify bugs, security issues, performance problems, and style improvements
 - **Severity Scoring** - Overall quality score (0–100) with per-issue severity and type badges
 - **GitHub OAuth** - Sign in with GitHub to access private repositories and browse your repos from a dropdown
 - **Persistent Results** - Last review saved to localStorage and restored on page load
@@ -18,7 +18,7 @@ An AI-powered GitHub repository review tool built with Next.js and Claude. Enter
 - Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS v4
-- Anthropic Claude API (`claude-sonnet-4-6`)
+- Claude.ai web session (no API key required)
 - NextAuth.js v5 (GitHub OAuth)
 - Lucide React (icons)
 
@@ -36,18 +36,24 @@ npm install
 Create a `.env.local` file in the `codescan` directory:
 
 ```env
-ANTHROPIC_API_KEY=your_anthropic_api_key
+CLAUDE_SESSION_COOKIE=sessionKey=<your_claude_session_cookie>
 GITHUB_CLIENT_ID=your_github_oauth_client_id
 GITHUB_CLIENT_SECRET=your_github_oauth_client_secret
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-### 3. Get an Anthropic API Key
+### 3. Get your Claude.ai session cookie (automated)
 
-1. Go to [console.anthropic.com](https://console.anthropic.com/)
-2. Navigate to **API Keys** and click **Create Key**
-3. Paste the key as `ANTHROPIC_API_KEY` in `.env.local`
+Run the setup script — it opens a browser window for you to log in, then saves the cookie automatically:
+
+```bash
+npm run setup:session
+```
+
+Log in to claude.ai in the window that opens. The script closes automatically once it detects your session and updates `.env.local`.
+
+> Re-run `npm run setup:session` any time the session expires and scans start failing.
 
 ### 4. Set up GitHub OAuth (optional — required for private repos)
 
@@ -79,7 +85,7 @@ Open [http://localhost:3000](http://localhost:3000) to use CodeScan.
 | Route | Method | Description |
 |-------|--------|-------------|
 | `/api/repo` | POST | Fetches repo file tree from GitHub |
-| `/api/scan` | POST | Fetches file contents and runs Claude review |
+| `/api/scan` | POST | Fetches file contents and runs Claude review via claude.ai session |
 | `/api/auth/[...nextauth]` | GET/POST | GitHub OAuth via NextAuth |
 
 ## License

@@ -25,6 +25,7 @@ export default function HomePage() {
   const [result, setResult] = useState<ReviewResult | null>(null);
   const [treeLoading, setTreeLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userRepos, setUserRepos] = useState<UserRepo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
@@ -61,6 +62,26 @@ export default function HomePage() {
       .catch(() => setUserRepos([]))
       .finally(() => setReposLoading(false));
   }, [accessToken]);
+
+  useEffect(() => {
+    if (!scanning) {
+      setScanProgress(0);
+      return;
+    }
+    let current = 0;
+    setScanProgress(0);
+    const tick = setInterval(() => {
+      if (current < 90) {
+        const remaining = 90 - current;
+        current = Math.min(90, current + remaining * 0.03 + Math.random() * 0.5);
+      } else {
+        const remaining = 99 - current;
+        current = Math.min(99, current + remaining * 0.008 + Math.random() * 0.05);
+      }
+      setScanProgress(Math.floor(current));
+    }, 250);
+    return () => clearInterval(tick);
+  }, [scanning]);
 
   const handleFetchRepo = useCallback(
     async (url: string) => {
@@ -260,26 +281,37 @@ export default function HomePage() {
               onToggleSelectMode={() => setSelectMode(!selectMode)}
             />
 
-            {/* Scan button */}
-            <button
-              onClick={handleScan}
-              disabled={scanning || (selectMode && selectedFiles.size === 0)}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {scanning ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Scanning {fileCount} files...
-                </>
-              ) : (
-                <>
-                  <ScanSearch className="w-4 h-4" />
-                  {selectMode
-                    ? `Scan ${selectedFiles.size} Selected Files`
-                    : "Scan Full Repository"}
-                </>
-              )}
-            </button>
+            {/* Scan button / progress bar */}
+            {scanning ? (
+              <div className="w-full rounded-lg bg-[#161b22] border border-blue-500/20 px-4 py-3 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-sm text-blue-300">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Scanning {fileCount} files...
+                  </span>
+                  <span className="text-xs text-gray-400 font-mono tabular-nums">
+                    {scanProgress}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700/60 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500 ease-out"
+                    style={{ width: `${scanProgress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleScan}
+                disabled={selectMode && selectedFiles.size === 0}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <ScanSearch className="w-4 h-4" />
+                {selectMode
+                  ? `Scan ${selectedFiles.size} Selected Files`
+                  : "Scan Full Repository"}
+              </button>
+            )}
           </div>
         )}
 

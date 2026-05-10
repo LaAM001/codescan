@@ -1,8 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { sendMessage } from "@/lib/claude-web";
 import { buildReviewPrompt } from "@/lib/prompt";
 import { NextRequest, NextResponse } from "next/server";
-
-const anthropic = new Anthropic();
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,20 +23,7 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = buildReviewPrompt(language || "javascript");
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [
-        {
-          role: "user",
-          content: `Review this code:\n\n${code}`,
-        },
-      ],
-    });
-
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const text = await sendMessage(systemPrompt, `Review this code:\n\n${code}`);
 
     let parsed;
     try {

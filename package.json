@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup:session": "npx playwright install chromium --with-deps && node scripts/setup-session.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.88.0",
     "@monaco-editor/react": "^4.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "playwright": "^1.44.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
