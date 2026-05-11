@@ -54,15 +54,26 @@ export async function POST(req: NextRequest) {
       `Review this repository (${owner}/${repo}):\n\n${combinedCode}`
     );
 
+    if (!text.trim()) {
+      console.error("Claude returned an empty response");
+      return NextResponse.json(
+        { error: "Claude returned an empty response. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    // claude.ai web sometimes wraps JSON in markdown code fences — strip them
+    const jsonText = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+
     let parsed;
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(jsonText);
     } catch {
       console.error("Claude returned non-JSON:", text);
       return NextResponse.json(
         { error: "AI returned an unexpected format. Please try again." },
         { status: 500 }
-      );
+        );
     }
 
     parsed.filesReviewed = includedFiles.length;

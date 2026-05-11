@@ -80,23 +80,41 @@ export async function sendMessage(
     }
   );
 
-  if (!res.ok)
+  if (!res.ok) {
+    if (res.status === 429)
+      throw new Error(
+        "Claude.ai rate limit reached. Wait 1–2 minutes and try again, or scan fewer files using \"Select specific files\"."
+      );
     throw new Error(`claude.ai completion failed: ${res.status}`);
+  }
 
   const raw = await res.text();
+  console.log("[claude-web] raw preview:", raw.slice(0, 300));
+
+  // If the response contains no SSE data lines the session has soft-expired:
+  // the org/conversation endpoints still accept the cookie but completions are blocked.
+  if (!raw.includes("data:")) {
+    console.error("[claude-web] no SSE events in response — session likely expired:", raw.slice(0, 300));
+    throw new Error("CLAUDE_SESSION_COOKIE is not set");
+  }
+
   let fullText = "";
+
   for (const line of raw.split("\n")) {
     if (!line.startsWith("data:")) continue;
     try {
       const chunk = JSON.parse(line.slice(5).trim());
       if (chunk.type === "content_block_delta") {
+        // Anthropic API-style SSE delta
         fullText += chunk.delta?.text ?? "";
       } else if (typeof chunk.completion === "string") {
+        // claude.ai web SSE: each chunk is an incremental delta
         fullText += chunk.completion;
       }
     } catch {
       // skip malformed SSE lines
     }
   }
+
   return fullText;
 }
