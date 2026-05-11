@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright browser profile (stores claude.ai session locally)
+/.playwright-profile

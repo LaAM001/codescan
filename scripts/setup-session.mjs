@@ -1,14 +1,30 @@
 import { chromium } from "playwright";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ENV_PATH = join(ROOT, ".env.local");
+// Persistent profile so the user only needs to log in once
+const PROFILE_DIR = join(ROOT, ".playwright-profile");
+
+mkdirSync(PROFILE_DIR, { recursive: true });
 
 async function main() {
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext();
+  const context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    headless: false,
+    channel: "chrome",
+    args: [
+      // Removes the flag Google checks to detect automation
+      "--disable-blink-features=AutomationControlled",
+    ],
+  });
+
+  // Hide navigator.webdriver so Google OAuth doesn't block sign-in
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+  });
+
   const page = await context.newPage();
 
   console.log("\nOpening claude.ai — please log in in the browser window...\n");
@@ -26,7 +42,7 @@ async function main() {
     await page.waitForTimeout(1500);
   }
 
-  await browser.close();
+  await context.close();
 
   // Write / replace CLAUDE_SESSION_COOKIE in .env.local
   let env = existsSync(ENV_PATH) ? readFileSync(ENV_PATH, "utf8") : "";
@@ -38,9 +54,7 @@ async function main() {
   }
   writeFileSync(ENV_PATH, env);
 
-  console.log(
-    "\n✓ Session cookie saved to .env.local — run npm run dev to start.\n"
-  );
+  console.log("\n✓ Session cookie saved to .env.local\n");
 }
 
 main().catch((err) => {

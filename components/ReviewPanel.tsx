@@ -8,7 +8,6 @@ import { FileSearch } from "lucide-react";
 interface ReviewPanelProps {
   result: ReviewResult | null;
   loading: boolean;
-  error: string | null;
 }
 
 function SkeletonCard() {
@@ -39,21 +38,7 @@ function SkeletonScore() {
   );
 }
 
-export default function ReviewPanel({
-  result,
-  loading,
-  error,
-}: ReviewPanelProps) {
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-          <strong>Error:</strong> {error}
-        </div>
-      </div>
-    );
-  }
-
+export default function ReviewPanel({ result, loading }: ReviewPanelProps) {
   if (loading) {
     return (
       <div className="p-6 space-y-4">
@@ -77,9 +62,7 @@ export default function ReviewPanel({
           No review yet
         </h3>
         <p className="text-sm text-center max-w-xs">
-          Paste your code in the editor and click{" "}
-          <strong>&quot;Review Code&quot;</strong> to get an AI-powered analysis
-          with actionable feedback.
+          Fetch a repository and click <strong>&quot;Scan Full Repository&quot;</strong> to get an AI-powered code review.
         </p>
       </div>
     );

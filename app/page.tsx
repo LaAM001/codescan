@@ -13,6 +13,7 @@ import {
   Loader2,
   GitBranch,
   Trash2,
+  PlugZap,
 } from "lucide-react";
 
 const STORAGE_KEY = "codescan_last_review";
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [settingUpSession, setSettingUpSession] = useState(false);
   const [userRepos, setUserRepos] = useState<UserRepo[]>([]);
   const [reposLoading, setReposLoading] = useState(false);
 
@@ -117,9 +119,23 @@ export default function HomePage() {
   const handleScan = useCallback(async () => {
     if (!repoInfo || scanning) return;
 
-    setScanning(true);
     setError(null);
     setResult(null);
+
+    // Validate session before showing the progress bar
+    try {
+      const check = await fetch("/api/check-session");
+      const checkData = await check.json();
+      if (!check.ok || !checkData.valid) {
+        setError(checkData.error || "CLAUDE_SESSION_COOKIE is not set");
+        return;
+      }
+    } catch {
+      setError("CLAUDE_SESSION_COOKIE is not set");
+      return;
+    }
+
+    setScanning(true);
 
     try {
       const files = selectMode
@@ -159,6 +175,21 @@ export default function HomePage() {
       else next.add(path);
       return next;
     });
+  };
+
+  const handleSetupSession = async () => {
+    setSettingUpSession(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/setup-session", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Session setup failed");
+      await handleScan();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Session setup failed");
+    } finally {
+      setSettingUpSession(false);
+    }
   };
 
   const handleClear = () => {
@@ -245,7 +276,27 @@ export default function HomePage() {
         {/* Error banner */}
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
-            <p className="text-red-400 text-sm">{error}</p>
+            {error.includes("CLAUDE_SESSION_COOKIE is not set") ? (
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-red-400 text-sm">
+                  Claude.ai session not connected.
+                </p>
+                <button
+                  onClick={handleSetupSession}
+                  disabled={settingUpSession}
+                  className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors shrink-0"
+                >
+                  {settingUpSession ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <PlugZap className="w-3 h-3" />
+                  )}
+                  {settingUpSession ? "Opening browser…" : "Connect Claude.ai"}
+                </button>
+              </div>
+            ) : (
+              <p className="text-red-400 text-sm">{error}</p>
+            )}
           </div>
         )}
 
@@ -328,7 +379,7 @@ export default function HomePage() {
                 </span>
               )}
             </div>
-            <ReviewPanel result={result} loading={scanning} error={null} />
+            <ReviewPanel result={result} loading={scanning} />
           </div>
         )}
       </main>
